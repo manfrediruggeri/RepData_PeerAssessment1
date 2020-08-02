@@ -3,34 +3,34 @@ Reproducible Research: PA1
 
 **Loading and preprocessing the data**
 
-    #load libraries 
+    #load libraries
     library(dplyr)
 
-    ## 
+    ##
     ## Attaching package: 'dplyr'
 
     ## The following objects are masked from 'package:stats':
-    ## 
+    ##
     ##     filter, lag
 
     ## The following objects are masked from 'package:base':
-    ## 
+    ##
     ##     intersect, setdiff, setequal, union
 
     library(lubridate)
 
-    ## 
+    ##
     ## Attaching package: 'lubridate'
 
     ## The following objects are masked from 'package:base':
-    ## 
+    ##
     ##     date, intersect, setdiff, union
 
     library(ggplot2)
     #read data
     act <- read.csv("activity.csv", header=TRUE)
     #process data
-    act$date <- as.Date(as.character(act$date), "%Y-%m-%d") 
+    act$date <- as.Date(as.character(act$date), "%Y-%m-%d")
 
 What is mean total number of steps taken per day?
 =================================================
@@ -156,7 +156,7 @@ median:
 
     ## [1] 10766.19
 
-After imputing missing data, mean and median are identical  
+After imputing missing data, mean and median are identical; mean is higher  
 \# Are there differences in activity patterns between weekdays and
 weekends?  
 **Create a new factor variable in dataset with two levels “weekday” and
