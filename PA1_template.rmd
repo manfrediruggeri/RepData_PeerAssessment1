@@ -1,0 +1,123 @@
+---
+title: "PA1_template"
+author: "Manfredi Ruggeri"
+date: "2/8/2020"
+output: html_document
+---
+
+## Reproducible Research: PA1
+
+**Loading and preprocessing the data**  
+```{r warning=FALSE}
+#load libraries 
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+#read data
+act <- read.csv("activity.csv", header=TRUE)
+#process data
+act$date <- as.Date(as.character(act$date), "%Y-%m-%d") 
+```
+# What is mean total number of steps taken per day?
+```{r warning=FALSE}
+tb <- act %>% group_by(date) %>% summarise(steps=sum(steps, na.rm=TRUE))
+```
+  
+**Make a histogram of the total number of steps**  
+```{r}
+hist(tb$steps, ylim=c(0,30), xlab="Steps", main ="Histogram of steps per day")
+```
+  
+**Calculate and report the mean and median of the total number of steps taken per days **  
+
+mean:
+```{r}
+print(mean(tb$steps))
+```
+median:
+```{r}
+print(median(tb$steps))
+```
+# What is the average daily activity pattern?
+
+
+**Make a time series plot of steps averaged across all days**  
+
+
+group data by interval and calculate the mean across groups
+```{r warning=FALSE}
+tb2 <- act %>% group_by(interval) %>% summarise(mean=mean(steps, na.rm=TRUE))
+plot(tb2$interval, tb2$mean, type="l", xlab="Interval", ylab="Steps averaged across days")
+grid()
+```
+  
+
+**Which interval contains the maximum number of steps?**  
+```{r}
+m <- max(tb2$mean)
+ans <- tb2 %>% filter(mean==m)
+print(ans[1,1])
+```
+# Imputing missing values  
+**Calculate and report the total number of missing values in the dataset**  
+```{r}
+naact <- act %>% filter(is.na(steps) | is.na(date) | is.na(interval))
+print(dim(naact))
+```
+So we have 2304 rows affected by NAs  
+**Devise a strategy for filling in all of the missing values in the dataset**    
+First of all we need to find where NAs are  
+```{r warning=FALSE}
+naSteps <- act %>% filter(is.na(steps))
+naDate <- act %>% filter(is.na(date))
+nainterval <- act %>% filter(is.na(interval))
+print(dim(naSteps))
+print(dim(naDate))
+print(dim(nainterval))
+```
+Luckly only steps variable has NAs.    
+Now we fill missing data in variable steps with the steps averaged across 5-minute interval    
+**Create a new dataset with the missing data filled in**   
+```{r}
+##completed rows in dataframe act
+notnaact <- act %>%filter(!is.na(steps))
+#fill missing data
+for(i in 1:nrow(naSteps)) {
+      tmp1 <- filter(tb2, interval== naSteps[i,3])
+      naSteps[i, 1]<- tmp1[1,2]
+}
+fillAct <- rbind(naSteps, notnaact)
+```
+  
+**Make an histogram of the total numbers of steps taken per day**    
+```{r}
+tb3 <- fillAct %>% group_by(date) %>% summarise(steps=sum(steps))
+hist(tb3$steps, ylim=c(0,40), xlab="Steps", main ="New Histogram of steps per day")
+```
+  
+**Calculate and report the mean and median total number of steps taken for day**  
+mean:    
+```{r}
+print(mean(tb3$steps))
+```
+median:  
+```{r}
+print(median(tb3$steps))
+```
+After imputing missing data, mean and median are identical    
+# Are there differences in activity patterns between weekdays and weekends?  
+**Create a new factor variable in dataset with two levels "weekday" and "weekends"**    
+```{r warning=FALSE}
+fillAct$dType <- ifelse(wday(fillAct$date)>5, "weekend", "weekday")
+fillAct$dType <- as.factor(fillAct$dType)
+```
+**Make a time series plot of average number of steps taken, across weekday days or weekend days**    
+  
+```{r}
+groupedAct <- aggregate(steps~interval + dType, fillAct, mean)
+g <- qplot(interval, steps, data= groupedAct, geom= "line", facets= .~dType)
+print(g)
+```
+
+
+
